@@ -88,6 +88,9 @@ def init():
             id INTEGER PRIMARY KEY AUTOINCREMENT, mobile TEXT, at TEXT,
             purpose TEXT, ok INTEGER, uid TEXT, code INTEGER, detail TEXT);
         CREATE INDEX IF NOT EXISTS idx_sms_log_at ON sms_log(at);
+        CREATE TABLE IF NOT EXISTS admin_handoffs (
+            code TEXT PRIMARY KEY, mobile TEXT NOT NULL,
+            created_at TEXT NOT NULL, expires_at TEXT NOT NULL, created_by TEXT);
         """)
         # columns added after the first release â€” older DB files get them here
         cols = {r['name'] for r in c.execute('PRAGMA table_info(profiles)')}
@@ -251,6 +254,53 @@ def session_info(token):
 def drop_session(token):
     with _lock, _conn() as c:
         c.execute('DELETE FROM sessions WHERE token = ?', (token,))
+
+
+# ---------------------------------------------------------------- admin handoff
+# "View as customer": the admin panel opens a shopper's account without their
+# OTP, for support. It never hands the admin a real 60-day session token —
+# instead it gets this one-time, 60-second code, which the customer app
+# exchanges for a real token itself (see /api/auth/exchange) and immediately
+# scrubs from the address bar. The code is useless after one redemption or a
+# minute, whichever comes first.
+HANDOFF_TTL_SECONDS = 60
+
+
+def create_handoff(mobile, created_by=''):
+    code = secrets.token_urlsafe(24)
+    now = _now()
+    with _lock, _conn() as c:
+        c.execute('INSERT INTO admin_handoffs (code, mobile, created_at, expires_at, created_by) '
+                  'VALUES (?,?,?,?,?)',
+                  (code, mobile, _iso(now), _iso(now + dt.timedelta(seconds=HANDOFF_TTL_SECONDS)),
+                   created_by))
+        c.execute('DELETE FROM admin_handoffs WHERE expires_at < ?', (_iso(now),))
+    return code
+
+
+def redeem_handoff(code):
+    """One-shot: the row is deleted whether or not it was still valid, so a
+    code can never be replayed even within its TTL."""
+    if not code:
+        return None
+    now = _now()
+    with _lock, _conn() as c:
+        row = c.execute('SELECT mobile, expires_at FROM admin_handoffs WHERE code = ?',
+                        (code,)).fetchone()
+        c.execute('DELETE FROM admin_handoffs WHERE code = ?', (code,))
+    if not row or now > dt.datetime.fromisoformat(row['expires_at']):
+        return None
+    return row['mobile']
+
+
+def recent_admin_access(limit=50):
+    with _lock, _conn() as c:
+        rows = c.execute("SELECT mobile, at, detail FROM login_log "
+                         "WHERE event = 'admin_view_as' ORDER BY id DESC LIMIT ?",
+                         (limit,)).fetchall()
+    return [{'mobile': f'{r["mobile"][:2]}XXXXXX{r["mobile"][-2:]}'
+             if r['mobile'] and len(r['mobile']) == 10 else r['mobile'],
+             'at': r['at'], 'detail': r['detail']} for r in rows]
 
 
 # ---------------------------------------------------------------- profile

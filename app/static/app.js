@@ -1033,7 +1033,26 @@ window.addEventListener('resize', () => {
 });
 
 /* ================================================================== BOOT */
+async function tryAdminHandoff() {
+  // An admin opened this account via "view as customer" — the URL carries a
+  // one-time code, never the real session token. Scrub it from the address
+  // bar before even awaiting the exchange, so it never lingers visibly.
+  const params = new URLSearchParams(location.search);
+  const code = params.get('admin_access');
+  if (!code) return;
+  params.delete('admin_access');
+  const qs = params.toString();
+  history.replaceState({}, '', location.pathname + (qs ? `?${qs}` : '') + location.hash);
+  try {
+    const r = await api('/api/auth/exchange', { method: 'POST', body: JSON.stringify({ code }) });
+    localStorage.setItem(TOKEN_KEY, r.token);
+  } catch (e) {
+    toast('That admin access link has expired.');
+  }
+}
+
 (async function boot() {
+  await tryAdminHandoff();
   if (!token()) return;
   $('loginScreen').classList.add('hidden');
   $('customerApp').classList.remove('hidden');

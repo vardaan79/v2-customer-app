@@ -75,7 +75,7 @@ async function enter() {
   $('adminLogin').classList.add('hidden');
   $('adminPanel').classList.remove('hidden');
   await Promise.all([loadOverview(), loadOffers(), loadStores(), loadNudges(),
-                     loadSms()]);
+                     loadSms(), loadAccessLog()]);
 }
 
 /* ================================================================== overview */
@@ -770,6 +770,52 @@ $('sendTest').addEventListener('click', async () => {
     btn.disabled = false; btn.textContent = was;
   }
 });
+
+/* ================================================================== customer access */
+$('viewAsMobile').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+});
+
+$('viewAsBtn').addEventListener('click', async () => {
+  const mobile = $('viewAsMobile').value.trim();
+  if (!/^[6-9]\d{9}$/.test(mobile)) { toast('Enter a valid 10-digit mobile.'); return; }
+  if (!confirm(`Open +91 ${mobile}'s account as them, with no OTP? This is logged.`)) return;
+  const btn = $('viewAsBtn');
+  btn.disabled = true;
+  const was = btn.textContent;
+  btn.textContent = 'Opening…';
+  try {
+    const r = await api('/api/admin/customers/view-as', {
+      method: 'POST', body: JSON.stringify({ mobile }),
+    });
+    window.open(`/?admin_access=${encodeURIComponent(r.code)}`, '_blank', 'noopener');
+    $('viewAsMobile').value = '';
+    loadAccessLog();
+  } catch (e) { toast(e.message, 6000); } finally {
+    btn.disabled = false; btn.textContent = was;
+  }
+});
+
+async function loadAccessLog() {
+  try {
+    const r = await api('/api/admin/customers/recent-access');
+    if (!r.log.length) {
+      $('accessLog').innerHTML = '<div class="empty">No one has used this yet.</div>';
+      return;
+    }
+    $('accessLog').innerHTML = r.log.map(a => `
+      <div class="row">
+        <div class="row-main">
+          <div class="row-ico">👁️</div>
+          <div>
+            <h4>+91 ${esc(a.mobile)}</h4>
+            <small>${esc(a.at)}</small>
+            <small>${esc(a.detail || '')}</small>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch (e) { /* non-fatal — the tab still works without history */ }
+}
 
 /* ================================================================== settings */
 $('passwordForm').addEventListener('submit', async (e) => {

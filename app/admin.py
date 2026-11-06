@@ -517,6 +517,42 @@ def _parse_latlng(text):
     return float(m.group(1)), float(m.group(2))
 
 
+# ---------------------------------------------------------------- customer access
+@bp.post('/api/admin/customers/view-as')
+def view_as_customer():
+    """Support access: open a shopper's account without their OTP.
+
+    Returns a one-time 60-second handoff code, never the session token itself
+    (see store.create_handoff). Every use is written to login_log — mobile,
+    admin name and IP — the same trail a real sign-in leaves, so there is
+    always an answer to "who opened this account and when".
+    """
+    err, who = _require()
+    if err:
+        return err
+    mobile = str((request.json or {}).get('mobile', '')).strip()
+    if not data.valid_mobile(mobile):
+        return fail('Enter a valid 10-digit Indian mobile number.')
+    try:
+        if not data.exists(mobile):
+            return fail('No V2 purchases found against this number.', 404)
+    except Exception as exc:
+        return fail(f'Could not reach our billing system right now ({exc}).', 503)
+    code = store.create_handoff(mobile, created_by=who)
+    masked = f'{mobile[:2]}XXXXXX{mobile[-2:]}'
+    store.log(mobile, 'admin_view_as', f'opened by admin "{who}" from {request.remote_addr}')
+    LOG.warning('admin %s opened customer %s without OTP (view-as)', who, masked)
+    return jsonify({'ok': True, 'code': code, 'mobile': masked})
+
+
+@bp.get('/api/admin/customers/recent-access')
+def recent_access():
+    err, _ = _require()
+    if err:
+        return err
+    return jsonify({'ok': True, 'log': store.recent_admin_access(50)})
+
+
 # ---------------------------------------------------------------- nudges
 @bp.get('/api/admin/nudges')
 def get_nudges():

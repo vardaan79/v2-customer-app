@@ -242,6 +242,21 @@ def verify():
     return jsonify({'ok': True, 'token': token, 'mobile': mask(mobile)})
 
 
+@app.post('/api/auth/exchange')
+def exchange():
+    """Redeems a one-time admin 'view as customer' handoff code for a real
+    session token. The code is single-use and expires in 60 seconds, so it
+    carries none of the risk a bearer token in a URL would — see
+    admin.view_as_customer for where it's issued."""
+    code = str((request.json or {}).get('code', '')).strip()
+    mobile = store.redeem_handoff(code)
+    if not mobile:
+        return fail('That access link has expired. Ask the admin to open it again.', 401)
+    token = store.create_session(mobile, request.headers.get('User-Agent', ''))
+    store.log(mobile, 'login', 'via admin view-as handoff')
+    return jsonify({'ok': True, 'token': token, 'mobile': mask(mobile)})
+
+
 @app.post('/api/auth/logout')
 def logout():
     _, token = current_mobile()

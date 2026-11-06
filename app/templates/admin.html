@@ -43,6 +43,7 @@
       <button class="tab active" data-atab="offers">Offers</button>
       <button class="tab" data-atab="stores">Store locations</button>
       <button class="tab" data-atab="nudges">Nudges</button>
+      <button class="tab" data-atab="access">Customer access</button>
       <button class="tab" data-atab="sms">OTP SMS</button>
       <button class="tab" data-atab="settings">Settings</button>
     </nav>
@@ -103,6 +104,29 @@
         <button class="primary-btn inline" id="newNudge">+ New nudge</button>
       </div>
       <div id="nudgeRows" class="rows"></div>
+    </section>
+
+    <!-- CUSTOMER ACCESS -->
+    <section id="accessATab" class="atab hidden">
+      <div class="section-head">
+        <h3>Open a customer's account</h3>
+      </div>
+      <div class="panel upload-panel">
+        <div class="upload-copy">
+          <p class="muted" style="margin:0">Opens the app signed in as that
+            customer, with no OTP — for support, when a shopper is on the
+            phone and can't complete one themselves. Every use is logged below
+            with your name and the time.</p>
+        </div>
+        <div class="upload-actions">
+          <input class="admin-input" id="viewAsMobile" maxlength="10" inputmode="numeric"
+                 placeholder="10-digit mobile">
+          <button class="primary-btn" id="viewAsBtn">Open as customer →</button>
+        </div>
+      </div>
+
+      <div class="section-head"><h3>Recent access</h3></div>
+      <div id="accessLog" class="rows"></div>
     </section>
 
     <!-- SMS -->
