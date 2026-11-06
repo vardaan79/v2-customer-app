@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 Customer App — Admin</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
+<meta name="robots" content="noindex,nofollow">
+</head>
+<body class="admin">
+
+<!-- ============================================================ LOGIN -->
+<section id="adminLogin" class="admin-login">
+  <form class="login-card" id="adminLoginForm">
+    <div class="brand" style="margin-bottom:20px"><span class="brand-mark">V2</span> ADMIN</div>
+    <h2>Customer App control panel</h2>
+    <p class="muted">Manage offers, store locations and customer nudges.</p>
+    <label class="field-label" for="adminPass">ADMIN PASSWORD</label>
+    <input id="adminPass" type="password" class="admin-input" autocomplete="current-password">
+    <button class="primary-btn" type="submit">Sign in</button>
+    <div id="adminLoginError" class="alert hidden"></div>
+    <p class="fine">The password was printed in the server console the first time
+       the app started. Change it under Settings once you're in.</p>
+  </form>
+</section>
+
+<!-- ============================================================ PANEL -->
+<section id="adminPanel" class="hidden">
+  <header class="app-header">
+    <div class="brand light"><span class="brand-mark">V2</span> CUSTOMER APP · ADMIN</div>
+    <div class="header-right">
+      <a class="text-btn light" href="/" target="_blank" rel="noopener">Open the app ↗</a>
+      <button class="text-btn light" id="adminLogout">Log out</button>
+    </div>
+  </header>
+
+  <main class="app-content">
+    <div class="stats" id="adminStats"></div>
+
+    <nav class="tabs" aria-label="Admin sections">
+      <button class="tab active" data-atab="offers">Offers</button>
+      <button class="tab" data-atab="stores">Store locations</button>
+      <button class="tab" data-atab="nudges">Nudges</button>
+      <button class="tab" data-atab="sms">OTP SMS</button>
+      <button class="tab" data-atab="settings">Settings</button>
+    </nav>
+
+    <!-- OFFERS -->
+    <section id="offersATab" class="atab">
+      <div class="section-head">
+        <h3>Offer catalogue</h3>
+        <button class="primary-btn inline" id="newOffer">+ New offer</button>
+      </div>
+      <div id="offerRows" class="rows"></div>
+    </section>
+
+    <!-- STORES -->
+    <section id="storesATab" class="atab hidden">
+      <div class="section-head">
+        <h3>Store locations</h3>
+        <span id="geoSummary"></span>
+      </div>
+
+      <div class="panel upload-panel">
+        <div class="upload-copy">
+          <h4>Your store sheet is the store list</h4>
+          <p class="muted">The app shows these stores and only these stores —
+            nothing is read from the warehouse store master. Download the sheet,
+            edit it, upload it back. You'll see exactly what changes before
+            anything is saved.</p>
+          <p class="fine" id="notListedNote"></p>
+        </div>
+        <div class="upload-actions">
+          <button class="ghost-btn" id="downloadTemplate">⤓ Download sheet</button>
+          <label class="primary-btn file-btn">
+            ⤒ Choose Excel file
+            <input type="file" id="sheetFile" accept=".xlsx,.xlsm" hidden>
+          </label>
+          <span class="fine" id="uploadHint">.xlsx, up to 8 MB</span>
+        </div>
+      </div>
+      <div id="uploadResult" class="hidden"></div>
+
+      <div class="filters">
+        <input type="search" id="adminStoreSearch" placeholder="Search store, code, city or state…">
+        <select id="adminStoreFilter">
+          <option value="all">All stores</option>
+          <option value="missing">Missing coordinates</option>
+          <option value="suspect">Needs checking</option>
+          <option value="admin">From my sheet</option>
+        </select>
+      </div>
+      <div id="storeRows" class="rows"></div>
+      <button class="ghost-btn wide hidden" id="moreAdminStores">Show more</button>
+    </section>
+
+    <!-- NUDGES -->
+    <section id="nudgesATab" class="atab hidden">
+      <div class="section-head">
+        <h3>Customer nudges</h3>
+        <button class="primary-btn inline" id="newNudge">+ New nudge</button>
+      </div>
+      <div id="nudgeRows" class="rows"></div>
+    </section>
+
+    <!-- SMS -->
+    <section id="smsATab" class="atab hidden">
+      <div class="section-head">
+        <h3>OTP delivery — OneXtel / Aura</h3>
+        <span id="smsStatus"></span>
+      </div>
+      <div id="smsAlert" class="hidden"></div>
+
+      <form class="panel admin-form" id="smsForm">
+        <label>API key
+          <input name="key" type="password" autocomplete="off"
+                 placeholder="paste the key generated in Aura">
+          <span class="hint" id="keyHint"></span></label>
+        <label>Sender ID (DLT header)
+          <input name="sender" maxlength="11" placeholder="leave blank to let Aura decide">
+          <span class="hint">Your registered 6-character header. This key has
+            Match&nbsp;Template on, so Aura may resolve it — leave it blank and
+            send a test. A reply of code 600 means it is required.</span></label>
+        <label>DLT template ID
+          <input name="template_id" placeholder="1007161926972646259"></label>
+        <label>DLT entity ID
+          <input name="entity_id" placeholder="optional if auto-match is on">
+          <span class="hint">Leave blank only if Aura has auto-match enabled.</span></label>
+        <label class="wide">Message text
+          <textarea name="otp_template" rows="3"></textarea>
+          <span class="hint">Must match your registered DLT template word for word,
+            with <code>{otp}</code> where the variable goes. A mismatch is accepted
+            by Aura and then dropped by the operator.</span></label>
+        <div class="wide" id="smsPreview"></div>
+        <label class="check wide"><input type="checkbox" name="enabled">
+          <span>Send real OTP messages to customers</span></label>
+        <label class="check wide"><input type="checkbox" name="dev_mode">
+          <span>Developer mode — if sending fails, show the OTP on screen instead
+            of blocking login. <strong>Turn this off in production.</strong></span></label>
+        <div class="form-actions">
+          <button class="primary-btn" type="submit">Save settings</button>
+          <button class="ghost-btn" type="button" id="verifyKey">Check gateway</button>
+          <span id="smsMsg" class="fine"></span>
+        </div>
+      </form>
+
+      <div class="section-head"><h3>Send a test message</h3></div>
+      <div class="panel upload-panel">
+        <div class="upload-copy">
+          <p class="muted" style="margin:0">Sends one real SMS, in the same shape
+            as a live OTP, with the code <strong>123456</strong>. Use your own
+            number — it costs one credit.</p>
+        </div>
+        <div class="upload-actions">
+          <input class="admin-input" id="testMobile" maxlength="10" inputmode="numeric"
+                 placeholder="10-digit mobile">
+          <button class="primary-btn" id="sendTest">Send test SMS</button>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>Recent sends</h3><span id="smsCounts"></span>
+      </div>
+      <div id="smsLog" class="rows"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsATab" class="atab hidden">
+      <div class="section-head"><h3>Admin password</h3></div>
+      <form class="panel admin-form" id="passwordForm">
+        <label>Current password<input name="current" type="password" autocomplete="current-password"></label>
+        <label>New password<input name="new" type="password" autocomplete="new-password"
+               minlength="8" placeholder="At least 8 characters"></label>
+        <div class="form-actions">
+          <button class="primary-btn" type="submit">Change password</button>
+          <span id="passwordMsg" class="fine"></span>
+        </div>
+      </form>
+      <div class="section-head"><h3>Where this data lives</h3></div>
+      <div class="panel">
+        <p class="muted" style="margin:0">Everything on this panel is stored in
+          Snowflake, not on this machine — <code>V2RETAIL.CDP_WORK.APP_OFFER</code>,
+          <code>APP_OFFER_STORE</code>, <code>APP_STORE_LOCATION</code>,
+          <code>APP_NUDGE</code> and <code>APP_NUDGE_READ</code>. Customer profile
+          details go to <code>CUSTOMER_PROFILE</code>. Any other app or report
+          reading those tables sees the same content.</p>
+      </div>
+    </section>
+  </main>
+</section>
+
+<!-- ============================================================ EDITOR -->
+<div id="editModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3 id="editTitle">Edit</h3>
+      <button class="close" id="closeEdit" aria-label="Close">×</button>
+    </div>
+    <div class="edit-body" id="editBody"></div>
+    <div class="receipt-actions">
+      <button class="ghost-btn" id="editCancel">Cancel</button>
+      <button class="primary-btn" id="editSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

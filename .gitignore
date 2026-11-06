@@ -1,0 +1,23 @@
+# ---- secrets and customer data: never commit these ----
+# config.json: API key + password, admin password hash, DLT ids
+config.json
+# data/: SQLite - OTP, sessions, profile outbox, SMS log
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# ---- runtime noise ----
+__pycache__/
+*.py[cod]
+_server_out.txt
+_server_err.txt
+_prod_out.txt
+_prod_err.txt
+*.log
+
+# ---- local working files ----
+*.xlsx
+.venv/
+venv/
+.env

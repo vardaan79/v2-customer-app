@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#202020">
+<title>V2 Retail — My Account</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="{{ url_for('static', filename='icons/favicon-32.png') }}" sizes="32x32">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="V2 Retail">
+<meta name="description" content="Your V2 bills, savings, offers and VIP membership.">
+</head>
+<body>
+
+<!-- ============================================================ LOGIN -->
+<section id="loginScreen" class="login-layout">
+  <div class="login-visual">
+    <div>
+      <div class="brand light"><span class="brand-mark">V2</span> V2 RETAIL</div>
+      <div class="eyebrow" style="margin-top:42px">YOUR V2. YOUR STYLE.</div>
+      <h1>Good fashion.<br><span>Great value.</span><br>All yours.</h1>
+      <p>Every bill you have ever made at a V2 store, your savings and your VIP
+         membership — together in one place.</p>
+    </div>
+    <div class="visual-footer">VALUE &amp; VARIETY · FASHION STARTS @ ₹99</div>
+  </div>
+
+  <div class="login-panel">
+    <div class="login-card">
+      <div class="eyebrow">WELCOME TO V2</div>
+      <h2 id="loginTitle">Your shopping, in your pocket.</h2>
+      <p class="muted" id="loginSub">Enter the mobile number you give at the billing
+         counter and we&rsquo;ll send you a one-time password.</p>
+
+      <form id="phoneStep" autocomplete="on">
+        <label class="field-label" for="mobile">REGISTERED MOBILE NUMBER</label>
+        <div class="phone-wrap">
+          <div class="country">🇮🇳 +91</div>
+          <input id="mobile" name="mobile" type="tel" maxlength="10" inputmode="numeric"
+                 autocomplete="tel-national" placeholder="10-digit mobile number">
+        </div>
+        <button class="primary-btn" id="sendOtp" type="submit">Get OTP <span aria-hidden="true">→</span></button>
+        <p class="terms">We look up your purchases against this number only. Your bills
+           are never shown to anyone who cannot receive its OTP.</p>
+      </form>
+
+      <form id="otpStep" class="hidden">
+        <label class="field-label">ENTER 6-DIGIT OTP</label>
+        <div class="otp-row">
+          <input maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="OTP digit 1">
+          <input maxlength="1" inputmode="numeric" aria-label="OTP digit 2">
+          <input maxlength="1" inputmode="numeric" aria-label="OTP digit 3">
+          <input maxlength="1" inputmode="numeric" aria-label="OTP digit 4">
+          <input maxlength="1" inputmode="numeric" aria-label="OTP digit 5">
+          <input maxlength="1" inputmode="numeric" aria-label="OTP digit 6">
+        </div>
+        <div id="devOtp" class="dev-otp hidden"></div>
+        <button class="primary-btn" id="verifyOtp" type="submit">Verify &amp; sign in →</button>
+        <div class="row-between">
+          <button class="text-btn" id="backToPhone" type="button">← Change number</button>
+          <button class="text-btn" id="resendOtp" type="button">Resend OTP</button>
+        </div>
+      </form>
+
+      <div id="loginError" class="alert hidden" role="alert"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ APP -->
+<section id="customerApp" class="app-wrap hidden">
+  <header class="app-header">
+    <div class="brand light"><span class="brand-mark">V2</span> V2 RETAIL</div>
+    <div class="header-right">
+      <span class="live-chip" id="liveChip" title="Date up to which V2 billing data has reached this app"></span>
+      <button class="icon-btn hidden" id="installBtn" title="Install the V2 app">⤓ Install</button>
+      <button class="icon-btn bell" id="bellBtn" title="Your updates">🔔<span class="dot hidden" id="bellDot"></span></button>
+      <div class="avatar" id="avatar">··</div>
+      <button class="text-btn light" id="logout">Log out</button>
+    </div>
+  </header>
+
+  <div id="nudgeTray" class="nudge-tray hidden"></div>
+
+  <main class="app-content">
+    <div class="welcome">
+      <div>
+        <div class="eyebrow">YOUR V2 ACCOUNT</div>
+        <h1>Hello, <span id="greetName">there</span> <span aria-hidden="true">👋</span></h1>
+        <p id="welcomeSub" class="muted">Loading your purchases…</p>
+      </div>
+      <div class="member-chip hidden" id="memberChip"></div>
+    </div>
+
+    <div class="stats" id="statRow">
+      <div class="stat skeleton"></div><div class="stat skeleton"></div>
+      <div class="stat skeleton"></div><div class="stat skeleton"></div>
+    </div>
+
+    <section id="vipCard" class="vip-card hidden"></section>
+
+    <nav class="tabs" aria-label="Account sections">
+      <button class="tab active" data-tab="purchases">Purchase history</button>
+      <button class="tab" data-tab="offers">Offers</button>
+      <button class="tab" data-tab="stores">Find my store</button>
+      <button class="tab" data-tab="insights">My shopping</button>
+      <button class="tab" data-tab="membership">V2 VIP Club</button>
+      <button class="tab" data-tab="profile">My details</button>
+    </nav>
+
+    <!-- purchases -->
+    <section id="purchasesPanel" class="tab-panel">
+      <div class="filters">
+        <input type="search" id="billSearch" placeholder="Search bill number, store or item…">
+        <select id="billPeriod">
+          <option value="all">All time</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last 12 months</option>
+          <option value="thisfy">This financial year</option>
+        </select>
+        <select id="billStore"><option value="">All stores</option></select>
+        <a class="ghost-btn" id="csvLink" href="#" download>Download CSV</a>
+      </div>
+      <div class="section-head">
+        <h3>Your bills</h3><span id="billCount"></span>
+      </div>
+      <div class="purchase-list" id="billList"></div>
+      <button class="ghost-btn wide hidden" id="showMore">Show older bills</button>
+    </section>
+
+    <!-- offers -->
+    <section id="offersPanel" class="tab-panel hidden">
+      <div class="section-head">
+        <h3>Running offers</h3><span id="offerCount"></span>
+      </div>
+      <div class="offer-grid" id="offerGrid"></div>
+      <p class="fine">Offers apply at the billing counter against your registered
+         mobile number. Terms for each offer are on its card.</p>
+    </section>
+
+    <!-- store finder -->
+    <section id="storesPanel" class="tab-panel hidden">
+      <div class="section-head">
+        <h3>Find my store</h3><span id="storeMeta"></span>
+      </div>
+      <div class="filters">
+        <input type="search" id="storeSearch" placeholder="Search by store, city, state or PIN code…">
+        <select id="storeState"><option value="">All states</option></select>
+        <button class="ghost-btn" id="nearMe">📍 Stores near me</button>
+      </div>
+      <div id="geoNote" class="notice hidden"></div>
+      <div class="store-grid" id="storeGrid"></div>
+      <button class="ghost-btn wide hidden" id="moreStores">Show more stores</button>
+    </section>
+
+    <!-- insights -->
+    <section id="insightsPanel" class="tab-panel hidden">
+      <div class="section-head"><h3>What you spend, month by month</h3>
+        <span id="monthRange"></span></div>
+      <div class="panel chart-panel">
+        <figure class="figure">
+          <figcaption class="fig-cap">Amount paid per month, last 12 months</figcaption>
+          <div id="monthChart" class="chart"></div>
+        </figure>
+      </div>
+
+      <div class="insight-grid">
+        <div class="panel">
+          <div class="section-head tight"><h3>What you shop for</h3></div>
+          <div id="catChart" class="chart"></div>
+          <p class="fine" id="catNote"></p>
+        </div>
+        <div class="panel">
+          <div class="section-head tight"><h3>Where you shop</h3></div>
+          <div id="storeList" class="store-list"></div>
+        </div>
+      </div>
+
+      <div class="section-head"><h3>Your shopping rhythm</h3></div>
+      <div class="stats" id="rhythmRow"></div>
+    </section>
+
+    <!-- membership -->
+    <section id="membershipPanel" class="tab-panel hidden">
+      <div id="membershipBody"></div>
+      <div class="section-head"><h3>How the V2 VIP Club works</h3></div>
+      <div class="tier-grid">
+        <div class="tier" data-tier="Silver">
+          <div class="eyebrow">SILVER</div><strong>2% off</strong>
+          <p>₹200 membership fee · valid 1 year from purchase</p></div>
+        <div class="tier" data-tier="Gold">
+          <div class="eyebrow">GOLD</div><strong>5% off</strong>
+          <p>₹500 membership fee · valid 1 year from purchase</p></div>
+        <div class="tier" data-tier="Platinum">
+          <div class="eyebrow">PLATINUM</div><strong>11% off</strong>
+          <p>₹1,000 membership fee · valid 1 year from purchase</p></div>
+      </div>
+      <p class="fine">Member discount applies on eligible merchandise at the billing
+         counter against your registered mobile number. Ask any V2 store for a card.</p>
+    </section>
+
+    <!-- profile -->
+    <section id="profilePanel" class="tab-panel hidden">
+      <div class="section-head"><h3>Personal details</h3><span>Only you can see this</span></div>
+      <form class="panel profile-form" id="profileForm">
+        <label>Full name<input name="name" maxlength="60" placeholder="Your name"></label>
+        <label>Email address<input name="email" type="email" placeholder="you@example.com"></label>
+        <label>Date of birth<input name="dob" type="date"></label>
+        <label>Anniversary<input name="anniversary" type="date"></label>
+        <label>Preferred store
+          <select name="preferred_store"><option value="">Select a store</option></select></label>
+        <label>Registered mobile<input id="profileMobile" disabled></label>
+        <label class="check-row">
+          <input type="checkbox" name="marketing_opt_in">
+          <span>Keep me posted about V2 offers, new arrivals and birthday rewards
+                on this number and email.</span>
+        </label>
+        <div class="form-actions">
+          <button class="primary-btn" type="submit">Save my details</button>
+          <span id="profileMsg" class="fine"></span>
+        </div>
+      </form>
+      <p class="fine">Your mobile number is how V2 links your bills — it cannot be changed
+         here. Everything else is optional. What you save here is stored in V2's customer
+         records and is used to personalise your account; we only send you offers if you
+         tick the box above.</p>
+    </section>
+  </main>
+
+  <footer class="app-foot">
+    <span>V2 Retail · My Account</span>
+    <span id="footMeta"></span>
+  </footer>
+</section>
+
+<!-- ============================================================ RECEIPT -->
+<div id="receiptModal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+     aria-label="Your receipt">
+  <div class="receipt-modal">
+    <div class="receipt-toolbar">
+      <span class="eyebrow">Digital receipt copy</span>
+      <div style="display:flex;gap:8px">
+        <button id="printReceipt">⤓ Save / Print</button>
+        <button id="closeReceipt" aria-label="Close">Close</button>
+      </div>
+    </div>
+    <div class="receipt-sheet">
+      <div class="zig"></div>
+      <div class="slip" id="receiptContent"></div>
+      <div class="zig bottom"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ OFFER DETAIL -->
+<div id="offerModal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+     aria-label="Offer details">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="offerModalTitle">Offer</h3>
+      <button class="close" id="closeOffer" aria-label="Close">×</button>
+    </div>
+    <div class="receipt" id="offerContent"></div>
+    <div class="receipt-actions">
+      <button class="ghost-btn" id="offerFindStore">Find a store</button>
+      <button class="primary-btn" id="offerDone">Got it</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

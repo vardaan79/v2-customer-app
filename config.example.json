@@ -1,0 +1,25 @@
+{
+  "_comment": "Copy to config.json and fill in. config.json holds live secrets and is gitignored.",
+
+  "bind_host": "0.0.0.0",
+  "port": 5017,
+  "behind_proxy": true,
+
+  "dev_mode": false,
+
+  "purchase_cutoff": "2025-04-01",
+
+  "admin_salt": "",
+  "admin_password_hash": "",
+
+  "sms": {
+    "provider": "onextel",
+    "key": "YOUR_AURA_API_KEY",
+    "key_password": "",
+    "sender": "VIIRTL",
+    "entity_id": "1001392810000012986",
+    "template_id": "1007161926972646259",
+    "otp_template": "Welcome to V2 Retail. Your OTP is : {otp}, Please note that this OTP will expire in 5 min.",
+    "enabled": true
+  }
+}

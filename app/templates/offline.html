@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 Retail — You're offline</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="login-panel" style="min-height:100vh">
+  <div class="login-card" style="text-align:center">
+    <div class="brand" style="justify-content:center;margin-bottom:22px">
+      <span class="brand-mark">V2</span> V2 RETAIL
+    </div>
+    <h2>You're offline</h2>
+    <p class="muted">We can't reach V2 right now. Your bills will be here the
+       moment you're back on a network.</p>
+    <button class="primary-btn" onclick="location.href='/'">Try again</button>
+  </div>
+</div>
+</body>
+</html>

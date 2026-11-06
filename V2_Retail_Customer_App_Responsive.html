@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 Retail — Customer App</title>
+<style>
+:root {
+  --site-primary: #D71920;
+  --site-on-primary: #FFFFFF;
+  --site-secondary: #202020;
+  --site-on-secondary: #FFFFFF;
+  --site-background: #F5F2EC;
+  --site-on-background: #242321;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  color-scheme: light dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--site-font-body); color: light-dark(#242321,#F4F1EB); background: light-dark(#F5F2EC,#171717); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+#app { min-height: 100vh; width: 100%; background-color: light-dark(var(--site-background), #171717); color: light-dark(var(--site-on-background), #F4F1EB); border-radius: 0; }
+.topbar { height: 66px; background: var(--site-secondary); color: var(--site-on-secondary); display:flex; align-items:center; justify-content:space-between; padding: 0 5.5%; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:950; letter-spacing:-1.8px; font-size:27px; }
+.brand-mark { width:35px; height:35px; display:grid; place-items:center; background:var(--site-primary); color:white; font-weight:950; font-size:21px; border-radius:9px; letter-spacing:-2px; }
+.topbar-note { color:#D4D0C9; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; }
+.shell { max-width:1160px; margin:0 auto; padding:34px 26px 60px; }
+.login-layout { min-height:calc(100vh - 66px); display:grid; grid-template-columns:1.05fr .95fr; background:#F5F2EC; }
+.login-visual { background:var(--site-secondary); color:white; padding:9% 10%; display:flex; flex-direction:column; justify-content:space-between; position:relative; overflow:hidden; }
+.login-visual:after { content:"V2"; position:absolute; right:-20px; bottom:-110px; font-size:330px; line-height:1; font-weight:1000; letter-spacing:-35px; color:rgba(255,255,255,.045); pointer-events:none; }
+.eyebrow { text-transform:uppercase; font-size:11px; letter-spacing:2px; font-weight:800; color:var(--site-primary); }
+.login-visual h1 { font-family:var(--site-font-heading); font-size:clamp(42px,5vw,68px); line-height:.98; letter-spacing:-3px; max-width:510px; margin:24px 0 18px; }
+.login-visual h1 span { color:#F04A4F; }
+.login-visual p { color:#C9C6C0; max-width:390px; line-height:1.7; font-size:15px; }
+.visual-footer { color:#AAA69E; font-size:12px; position:relative; z-index:1; }
+.login-panel { display:flex; align-items:center; justify-content:center; padding:50px 8%; }
+.login-card { width:100%; max-width:420px; }
+.login-card h2 { font-size:30px; letter-spacing:-1px; margin:12px 0 8px; }
+.muted { color:#77736C; font-size:14px; line-height:1.6; }
+.field-label { display:block; font-size:12px; font-weight:800; margin:28px 0 9px; }
+.phone-wrap { display:flex; border:1px solid #D8D3CA; border-radius:12px; overflow:hidden; background:white; }
+.country { padding:15px 13px; background:#F2EFE9; color:#4D4942; border-right:1px solid #DED9D0; font-size:14px; }
+.phone-wrap input { border:0; outline:0; min-width:0; flex:1; padding:15px 14px; color:#222; background:white; font-size:16px; letter-spacing:1px; }
+.primary-btn { border:0; border-radius:11px; background:var(--site-primary); color:white; padding:15px 18px; font-weight:800; width:100%; margin-top:15px; transition:transform .15s,filter .15s; }
+.primary-btn:hover { filter:brightness(.94); transform:translateY(-1px); }
+.terms { font-size:11px; color:#8B877F; margin-top:18px; line-height:1.6; }
+.otp-row { display:flex; gap:9px; margin:20px 0 5px; }
+.otp-row input { width:50px; height:54px; border:1px solid #D8D3CA; border-radius:10px; text-align:center; font-size:22px; color:#222; background:white; }
+.text-btn { border:0; background:none; color:var(--site-primary); font-weight:800; padding:10px 0; }
+.hidden { display:none !important; }
+/* app */
+.app-wrap { background:#F5F2EC; min-height:100vh; }
+.app-header { background:var(--site-secondary); color:white; padding:18px max(5%, calc((100% - 1120px)/2)); display:flex; justify-content:space-between; align-items:center; gap:18px; }
+.header-right { display:flex; align-items:center; gap:16px; font-size:13px; color:#D8D4CD; }
+.avatar { width:36px; height:36px; border-radius:50%; background:#F5D9D7; color:#A91319; display:grid; place-items:center; font-weight:900; }
+.app-content { max-width:1120px; margin:auto; padding:28px 24px 60px; }
+.welcome { display:flex; justify-content:space-between; align-items:flex-end; gap:18px; margin-bottom:24px; }
+.welcome h1 { font-size:30px; letter-spacing:-1.2px; margin:5px 0 4px; }
+.welcome p { margin:0; color:#77736C; font-size:14px; }
+.member-chip { background:#FFF0E9; border:1px solid #F3D5C8; color:#A94B2C; border-radius:30px; padding:9px 14px; font-size:12px; font-weight:800; white-space:nowrap; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+.stat { background:white; border:1px solid #E9E4DB; border-radius:16px; padding:19px; }
+.stat .label { color:#827D74; font-size:12px; font-weight:700; }
+.stat .value { font-size:25px; font-weight:900; letter-spacing:-.8px; margin:7px 0 3px; }
+.stat .sub { font-size:11px; color:#98938A; }
+.vip-card { background:linear-gradient(112deg,#292522,#514239); color:white; border-radius:18px; padding:23px 26px; display:grid; grid-template-columns:1.2fr .8fr; gap:20px; position:relative; overflow:hidden; margin-bottom:24px; }
+.vip-card:after { content:"✦"; position:absolute; right:22%; top:-65px; font-size:240px; color:rgba(255,255,255,.045); }
+.vip-top { display:flex; gap:9px; align-items:center; color:#E7C9A1; font-size:11px; letter-spacing:1.6px; font-weight:900; }
+.vip-card h2 { font-size:30px; margin:9px 0 5px; letter-spacing:-1px; }
+.vip-card p { margin:0; color:#D3C8BD; font-size:13px; }
+.vip-progress { align-self:center; position:relative; z-index:1; }
+.progress-head { display:flex; justify-content:space-between; font-size:12px; color:#E6DCD1; margin-bottom:10px; }
+.progress { height:8px; border-radius:20px; background:#71665D; overflow:hidden; }
+.progress span { display:block; height:100%; width:68%; background:#E8C18B; border-radius:20px; }
+.progress-foot { font-size:11px; color:#C9BDB2; margin-top:9px; }
+.tabs { display:flex; gap:5px; border-bottom:1px solid #DED9D0; margin-bottom:18px; overflow:auto; }
+.tab { border:0; background:transparent; padding:13px 17px; color:#817C73; font-weight:800; font-size:13px; white-space:nowrap; border-bottom:3px solid transparent; }
+.tab.active { color:var(--site-primary); border-bottom-color:var(--site-primary); }
+.section-head { display:flex; justify-content:space-between; align-items:center; margin:18px 0 13px; }
+.section-head h3 { margin:0; font-size:18px; letter-spacing:-.4px; }
+.section-head span { color:#8A857D; font-size:12px; }
+.purchase-list { display:grid; gap:10px; }
+.purchase { display:flex; justify-content:space-between; align-items:center; gap:16px; background:white; border:1px solid #E9E4DB; border-radius:14px; padding:16px 18px; }
+.purchase-left { display:flex; gap:13px; align-items:center; min-width:0; }
+.store-icon { width:43px; height:43px; border-radius:12px; background:#FCE9E6; color:#C51D24; display:grid; place-items:center; font-size:19px; flex-shrink:0; }
+.purchase h4 { margin:0 0 5px; font-size:14px; }
+.purchase small { color:#858077; font-size:11px; }
+.purchase-right { text-align:right; flex-shrink:0; }
+.purchase-right strong { display:block; font-size:15px; margin-bottom:6px; }
+.receipt-link { border:0; background:none; padding:0; color:var(--site-primary); font-size:11px; font-weight:900; }
+.panel { background:white; border:1px solid #E9E4DB; border-radius:16px; padding:22px; }
+.empty-note { color:#817C73; font-size:13px; }
+.profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.profile-item { padding:13px; border-radius:11px; background:#F7F5F0; }
+.profile-item small { color:#858077; display:block; margin-bottom:5px; }
+.profile-item strong { font-size:14px; }
+.offer-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.offer { border-radius:14px; background:#FFF0EC; border:1px solid #F3D7D0; padding:18px; }
+.offer strong { display:block; font-size:17px; margin:6px 0; }
+.offer p { color:#78665F; font-size:12px; margin:0; }
+/* modal */
+.modal-backdrop { position:fixed; inset:0; background:rgba(15,14,13,.62); display:flex; justify-content:center; align-items:center; padding:18px; z-index:10; }
+.modal { width:100%; max-width:600px; max-height:90vh; overflow:auto; background:#FFFEFC; border-radius:18px; box-shadow:0 20px 70px rgba(0,0,0,.25); color:#292723; }
+.modal-head { padding:20px 23px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #EAE5DC; }
+.modal-head h3 { margin:0; font-size:18px; }
+.close { border:0; background:#F1EEE8; width:32px; height:32px; border-radius:50%; font-size:19px; }
+.receipt { padding:22px 25px 26px; }
+.receipt-brand { display:flex; justify-content:space-between; align-items:center; padding-bottom:18px; border-bottom:1px dashed #D6D0C7; }
+.receipt-brand strong { font-size:23px; letter-spacing:-1px; }
+.receipt-brand span { color:#8A857D; font-size:10px; letter-spacing:1px; }
+.receipt-meta { display:grid; grid-template-columns:1fr 1fr; gap:9px; padding:17px 0; font-size:12px; }
+.receipt-meta div span { color:#8B857B; display:block; margin-bottom:4px; }
+.receipt-table { width:100%; border-collapse:collapse; font-size:12px; }
+.receipt-table th { text-align:left; color:#817B72; font-size:10px; text-transform:uppercase; padding:10px 4px; border-bottom:1px solid #EAE5DC; }
+.receipt-table td { padding:10px 4px; border-bottom:1px solid #F0ECE5; }
+.receipt-table td:last-child,.receipt-table th:last-child { text-align:right; }
+.totals { margin:15px 0 0 auto; width: min(100%,260px); font-size:12px; }
+.total-row { display:flex; justify-content:space-between; padding:5px 0; color:#777168; }
+.total-row.grand { color:#292723; font-size:16px; font-weight:900; border-top:1px solid #DCD6CC; margin-top:6px; padding-top:11px; }
+.receipt-foot { text-align:center; border-top:1px dashed #D6D0C7; margin-top:20px; padding-top:16px; color:#827C72; font-size:11px; line-height:1.7; }
+.receipt-actions { padding:0 25px 22px; display:flex; gap:10px; }
+.receipt-actions button { margin:0; }
+.secondary-btn { border:1px solid #D8D2C8; background:white; color:#38342F; border-radius:11px; padding:13px; font-weight:800; flex:1; }
+@media(max-width:760px) {
+ .login-layout { grid-template-columns:1fr; }
+ .login-visual { min-height:290px; padding:34px 8%; }
+ .login-visual h1 { font-size:43px; margin:15px 0 10px; }
+ .login-visual p { font-size:13px; margin:0; }
+ .visual-footer { display:none; }
+ .login-panel { padding:38px 8% 55px; }
+ .topbar-note { display:none; }
+ .shell { padding:0; }
+ .stats { grid-template-columns:1fr 1fr; }
+ .stats .stat:last-child { grid-column:span 2; }
+ .vip-card { grid-template-columns:1fr; padding:20px; }
+ .welcome { align-items:flex-start; flex-direction:column; }
+ .app-content { padding:23px 15px 45px; }
+ .app-header { padding:15px; }
+ .header-right .member-label { display:none; }
+ .purchase { padding:13px; }
+ .purchase-right strong { font-size:13px; }
+ .profile-grid,.offer-grid { grid-template-columns:1fr; }
+}
+@media print { body * { visibility:hidden; } .modal,.modal * { visibility:visible; } .modal { position:absolute; left:0;top:0;max-height:none;box-shadow:none; } .modal-head,.receipt-actions { display:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar"><div class="brand"><div class="brand-mark">V2</div>V2 RETAIL</div><div class="topbar-note">Fashion starts @ ₹99</div></div>
+  <section id="loginScreen" class="login-layout">
+    <div class="login-visual">
+      <div><div class="eyebrow">Your V2. Your style.</div><h1>Good fashion.<br><span>Great value.</span><br>All yours.</h1><p>Your shopping, bills and rewards — together in one place. Sign in with your registered mobile number.</p></div>
+      <div class="visual-footer">VALUE & VARIETY · MADE FOR EVERYDAY STYLE</div>
+    </div>
+    <div class="login-panel"><div class="login-card">
+      <div class="eyebrow">WELCOME TO V2</div><h2 id="loginTitle">Your shopping, in your pocket.</h2><p class="muted" id="loginSub">Enter the mobile number linked to your V2 purchases to get a one-time password.</p>
+      <div id="phoneStep"><label class="field-label" for="mobile">REGISTERED MOBILE NUMBER</label><div class="phone-wrap"><div class="country">🇮🇳 +91</div><input id="mobile" type="tel" maxlength="10" placeholder="10-digit mobile number" inputmode="numeric"></div><button class="primary-btn" id="sendOtp">Get OTP <span aria-hidden="true">→</span></button><div class="terms">By continuing, you agree to receive a one-time verification message. Your account and purchase history stay linked to your registered number.</div></div>
+      <div id="otpStep" class="hidden"><label class="field-label">ENTER 6-DIGIT OTP</label><div class="otp-row"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"><input maxlength="1" inputmode="numeric"></div><p class="muted" style="font-size:12px">Demo OTP: <strong>123456</strong></p><button class="primary-btn" id="verifyOtp">Verify & Login →</button><button class="text-btn" id="backToPhone">← Change mobile number</button></div>
+    </div></div>
+  </section>
+  <section id="customerApp" class="app-wrap hidden">
+    <header class="app-header"><div class="brand"><div class="brand-mark">V2</div>V2 RETAIL</div><div class="header-right"><span class="member-label">MY V2 ACCOUNT</span><div class="avatar">AP</div><button class="text-btn" style="color:#fff;padding:0" id="logout">Log out</button></div></header>
+    <main class="app-content">
+      <div class="welcome"><div><div class="eyebrow">YOUR V2 ACCOUNT</div><h1>Hello, Anand <span style="color:#D71920">👋</span></h1><p>Your style journey, purchases and rewards at a glance.</p></div><div class="member-chip">✦ GOLD MEMBER</div></div>
+      <div class="stats"><div class="stat"><div class="label">LIFETIME SAVINGS</div><div class="value">₹4,280</div><div class="sub">Through V2 offers & rewards</div></div><div class="stat"><div class="label">TOTAL PURCHASES</div><div class="value">18</div><div class="sub">Across V2 stores</div></div><div class="stat"><div class="label">LIFETIME SPEND</div><div class="value">₹24,650</div><div class="sub">Since you joined V2</div></div></div>
+      <section class="vip-card"><div><div class="vip-top">✦ V2 VIP CLUB · YOUR MEMBERSHIP</div><h2>GOLD MEMBER</h2><p>Enjoy 5% member discount on eligible purchases.</p></div><div class="vip-progress"><div class="progress-head"><span>Progress to Platinum</span><strong>68%</strong></div><div class="progress"><span></span></div><div class="progress-foot">Shop ₹7,500 more to reach Platinum</div></div></section>
+      <nav class="tabs" aria-label="Account sections"><button class="tab active" data-tab="purchases">Purchase history</button><button class="tab" data-tab="membership">Membership & offers</button><button class="tab" data-tab="profile">My details</button></nav>
+      <section id="purchasesPanel" class="tab-panel"><div class="section-head"><h3>Recent purchases</h3><span>Showing latest 4 transactions</span></div><div class="purchase-list">
+        <article class="purchase"><div class="purchase-left"><div class="store-icon">▤</div><div><h4>V2 Retail · Sector 14, Gurugram</h4><small>02 Nov 2026 · 06:42 PM · Bill #V2-104829</small></div></div><div class="purchase-right"><strong>₹2,349.00</strong><button class="receipt-link" data-receipt="0">VIEW VIRTUAL BILL ↗</button></div></article>
+        <article class="purchase"><div class="purchase-left"><div class="store-icon">▤</div><div><h4>V2 Retail · Rajouri Garden, Delhi</h4><small>24 Oct 2026 · 04:18 PM · Bill #V2-103671</small></div></div><div class="purchase-right"><strong>₹1,780.00</strong><button class="receipt-link" data-receipt="1">VIEW VIRTUAL BILL ↗</button></div></article>
+        <article class="purchase"><div class="purchase-left"><div class="store-icon">▤</div><div><h4>V2 Retail · Sector 14, Gurugram</h4><small>11 Oct 2026 · 01:06 PM · Bill #V2-101990</small></div></div><div class="purchase-right"><strong>₹3,125.00</strong><button class="receipt-link" data-receipt="2">VIEW VIRTUAL BILL ↗</button></div></article>
+        <article class="purchase"><div class="purchase-left"><div class="store-icon">▤</div><div><h4>V2 Retail · Lajpat Nagar, Delhi</h4><small>28 Sep 2026 · 07:31 PM · Bill #V2-099541</small></div></div><div class="purchase-right"><strong>₹895.00</strong><button class="receipt-link" data-receipt="3">VIEW VIRTUAL BILL ↗</button></div></article>
+      </div><p class="muted" style="font-size:11px;margin:13px 2px">Sample transactions shown for prototype demonstration. A live app would display verified bills from V2's billing system.</p></section>
+      <section id="membershipPanel" class="tab-panel hidden"><div class="section-head"><h3>Your VIP benefits</h3><span>Valid through 14 Aug 2027</span></div><div class="panel" style="margin-bottom:14px"><div class="eyebrow">V2 VIP CLUB</div><h2 style="margin:8px 0 4px">Gold · 5% discount</h2><p class="muted" style="margin:0">Your membership is active. Present your registered mobile number at checkout to enjoy eligible member benefits.</p></div><div class="offer-grid"><div class="offer"><div class="eyebrow">MEMBER BENEFIT</div><strong>5% OFF</strong><p>Gold member discount on eligible purchases.</p></div><div class="offer"><div class="eyebrow">NEXT TIER</div><strong>Platinum · 11%</strong><p>Shop ₹7,500 more to unlock the next membership tier.</p></div></div><div class="section-head"><h3>Membership details</h3></div><div class="panel profile-grid"><div class="profile-item"><small>Membership ID</small><strong>VIP-2048-1186</strong></div><div class="profile-item"><small>Member since</small><strong>15 Aug 2026</strong></div><div class="profile-item"><small>Current tier</small><strong>Gold</strong></div><div class="profile-item"><small>Validity</small><strong>14 Aug 2027</strong></div></div></section>
+      <section id="profilePanel" class="tab-panel hidden"><div class="section-head"><h3>Personal details</h3><span>Account information</span></div><div class="panel profile-grid"><div class="profile-item"><small>Full name</small><strong>Anand Prakash</strong></div><div class="profile-item"><small>Mobile number</small><strong>+91 98XXXXXX42</strong></div><div class="profile-item"><small>Email address</small><strong>anand@example.com</strong></div><div class="profile-item"><small>Customer ID</small><strong>V2C-00841952</strong></div><div class="profile-item"><small>Preferred store</small><strong>Sector 14, Gurugram</strong></div><div class="profile-item"><small>Account status</small><strong style="color:#23834D">Active</strong></div></div><p class="muted" style="font-size:12px;margin-top:14px">In the live app, customers can update permitted profile fields and manage communication preferences here.</p></section>
+    </main>
+  </section>
+  <div id="receiptModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Virtual bill receipt"><div class="modal"><div class="modal-head"><h3>Virtual bill receipt</h3><button class="close" id="closeReceipt" aria-label="Close">×</button></div><div class="receipt" id="receiptContent"></div><div class="receipt-actions"><button class="secondary-btn" id="printReceipt">Print / Save PDF</button><button class="primary-btn" id="doneReceipt">Done</button></div></div></div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const phoneStep = $('phoneStep');
+const otpStep = $('otpStep');
+$('sendOtp').addEventListener('click', () => {
+  const mobile = $('mobile').value.replace(/\D/g, '');
+  if (!/^\d{10}$/.test(mobile)) { alert('Please enter a valid 10-digit mobile number.'); return; }
+  phoneStep.classList.add('hidden'); otpStep.classList.remove('hidden');
+  $('loginTitle').textContent = 'Verify it’s you.';
+  $('loginSub').textContent = `We’ve sent a one-time password to +91 ${mobile.slice(0,2)}XXXXXX${mobile.slice(-2)}.`;
+  document.querySelector('.otp-row input').focus();
+});
+const otpInputs = [...document.querySelectorAll('.otp-row input')];
+otpInputs.forEach((input, index) => {
+  input.addEventListener('input', () => { input.value = input.value.replace(/\D/g,'').slice(-1); if (input.value && otpInputs[index+1]) otpInputs[index+1].focus(); });
+  input.addEventListener('keydown', (event) => { if (event.key === 'Backspace' && !input.value && otpInputs[index-1]) otpInputs[index-1].focus(); });
+});
+$('backToPhone').addEventListener('click', () => { otpStep.classList.add('hidden'); phoneStep.classList.remove('hidden'); $('loginTitle').textContent='Your shopping, in your pocket.'; $('loginSub').textContent='Enter the mobile number linked to your V2 purchases to get a one-time password.'; });
+$('verifyOtp').addEventListener('click', () => {
+  const code = otpInputs.map(i=>i.value).join('');
+  if (code !== '123456') { alert('For this prototype, use demo OTP 123456.'); return; }
+  $('loginScreen').classList.add('hidden'); $('customerApp').classList.remove('hidden'); window.scrollTo(0,0);
+});
+$('logout').addEventListener('click', () => { $('customerApp').classList.add('hidden'); $('loginScreen').classList.remove('hidden'); phoneStep.classList.remove('hidden'); otpStep.classList.add('hidden'); otpInputs.forEach(i=>i.value=''); $('mobile').value=''; window.scrollTo(0,0); });
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t===tab));
+  document.querySelectorAll('.tab-panel').forEach(panel=>panel.classList.add('hidden'));
+  $(`${tab.dataset.tab}Panel`).classList.remove('hidden');
+}));
+const bills = [
+ {no:'V2-104829',date:'02 Nov 2026 · 06:42 PM',store:'V2 Retail, Sector 14, Gurugram',cashier:'EMP-0421',items:[['Men’s printed casual shirt','1','₹899.00','₹899.00'],['Women’s everyday kurta','1','₹799.00','₹799.00'],['Kids’ cotton T-shirt','1','₹499.00','₹499.00'],['Fashion accessories','1','₹299.00','₹299.00']],subtotal:2496,discount:147,member:0,total:2349,paid:'UPI · XXXX 2841',gst:'Included in item prices'},
+ {no:'V2-103671',date:'24 Oct 2026 · 04:18 PM',store:'V2 Retail, Rajouri Garden, Delhi',cashier:'EMP-0187',items:[['Women’s printed top','1','₹699.00','₹699.00'],['Men’s denim jeans','1','₹1,299.00','₹1,299.00']],subtotal:1998,discount:118,member:100,total:1780,paid:'Card · XXXX 6120',gst:'Included in item prices'},
+ {no:'V2-101990',date:'11 Oct 2026 · 01:06 PM',store:'V2 Retail, Sector 14, Gurugram',cashier:'EMP-0421',items:[['Men’s casual trousers','1','₹1,199.00','₹1,199.00'],['Women’s kurta set','1','₹1,499.00','₹1,499.00'],['Kids’ shorts','1','₹599.00','₹599.00']],subtotal:3297,discount:172,member:0,total:3125,paid:'UPI · XXXX 2841',gst:'Included in item prices'},
+ {no:'V2-099541',date:'28 Sep 2026 · 07:31 PM',store:'V2 Retail, Lajpat Nagar, Delhi',cashier:'EMP-0322',items:[['Women’s leggings','1','₹399.00','₹399.00'],['Men’s basic T-shirt','1','₹599.00','₹599.00']],subtotal:998,discount:103,member:0,total:895,paid:'Cash',gst:'Included in item prices'}
+];
+const money = n => '₹'+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+function showReceipt(index) {
+ const b=bills[index];
+ $('receiptContent').innerHTML = `<div class="receipt-brand"><div><strong>V2 RETAIL</strong><div style="font-size:10px;color:#8A857D;margin-top:3px">VALUE & VARIETY · FASHION STARTS @ ₹99</div></div><span> CUSTOMER COPY</span></div>
+ <div class="receipt-meta"><div><span>STORE</span><strong>${b.store}</strong></div><div><span>BILL NUMBER</span><strong>${b.no}</strong></div><div><span>DATE & TIME</span><strong>${b.date}</strong></div><div><span>CASHIER</span><strong>${b.cashier}</strong></div><div><span>CUSTOMER</span><strong>Anand Prakash</strong></div><div><span>MEMBERSHIP</span><strong>Gold · VIP-2048-1186</strong></div></div>
+ <table class="receipt-table"><thead><tr><th>Item description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${b.items.map(i=>`<tr><td>${i[0]}</td><td>${i[1]}</td><td>${i[2]}</td><td>${i[3]}</td></tr>`).join('')}</tbody></table>
+ <div class="totals"><div class="total-row"><span>Subtotal</span><strong>${money(b.subtotal)}</strong></div><div class="total-row"><span>Store / promotional discount</span><strong>− ${money(b.discount)}</strong></div>${b.member?`<div class="total-row"><span>Gold membership discount</span><strong>− ${money(b.member)}</strong></div>`:''}<div class="total-row"><span>GST</span><strong>${b.gst}</strong></div><div class="total-row grand"><span>Net amount paid</span><strong>${money(b.total)}</strong></div></div>
+ <div class="receipt-meta" style="border-top:1px dashed #D6D0C7;margin-top:16px"><div><span>PAYMENT MODE</span><strong>${b.paid}</strong></div><div><span>ITEMS</span><strong>${b.items.reduce((n,i)=>n+Number(i[1]),0)} item(s)</strong></div></div><div class="receipt-foot">Thank you for shopping at V2 Retail!<br>Keep discovering great fashion at great value.<br><strong>This is a digital copy of your purchase receipt.</strong></div>`;
+ $('receiptModal').classList.remove('hidden');
+}
+document.querySelectorAll('[data-receipt]').forEach(btn=>btn.addEventListener('click',()=>showReceipt(Number(btn.dataset.receipt))));
+function closeReceipt(){ $('receiptModal').classList.add('hidden'); }
+$('closeReceipt').addEventListener('click',closeReceipt); $('doneReceipt').addEventListener('click',closeReceipt); $('printReceipt').addEventListener('click',()=>window.print());
+$('receiptModal').addEventListener('click',e=>{if(e.target===$('receiptModal')) closeReceipt();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeReceipt();});
+</script>
+</body>
+</html>
